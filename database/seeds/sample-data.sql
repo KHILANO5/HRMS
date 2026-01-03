@@ -18,20 +18,20 @@ USE hrms_db;
 -- =============================================
 -- Admin User
 -- Email: admin@dayflow.com
--- Password: Admin@123 (bcrypt hash - replace with actual)
+-- Password: Password@123 (bcrypt hash - verified working)
 INSERT INTO users (id, email, password_hash, role, is_active, is_first_login, last_login, created_at, updated_at)
 VALUES 
-('550e8400-e29b-41d4-a716-446655440001', 'admin@dayflow.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36vwXL0O', 'admin', TRUE, FALSE, '2026-01-03 10:30:00', '2025-12-01 08:00:00', '2026-01-03 10:30:00');
+('550e8400-e29b-41d4-a716-446655440001', 'admin@dayflow.com', '$2a$10$LWwPGY4km2l6Z/0B8JSsTurDj26dmGB8FE0N5iu1mF7AmyRI22RFG', 'admin', TRUE, FALSE, '2026-01-03 10:30:00', '2025-12-01 08:00:00', '2026-01-03 10:30:00');
 
 -- Employee Users
 INSERT INTO users (id, email, password_hash, role, is_active, is_first_login, last_login, created_at, updated_at)
 VALUES 
-('550e8400-e29b-41d4-a716-446655440002', 'john.doe@dayflow.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36vwXL0O', 'employee', TRUE, FALSE, '2026-01-03 09:15:00', '2025-11-15 07:30:00', '2026-01-03 09:15:00'),
-('550e8400-e29b-41d4-a716-446655440003', 'jane.smith@dayflow.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36vwXL0O', 'employee', TRUE, FALSE, '2026-01-02 14:45:00', '2025-10-20 09:00:00', '2026-01-02 14:45:00'),
-('550e8400-e29b-41d4-a716-446655440004', 'michael.johnson@dayflow.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36vwXL0O', 'employee', TRUE, TRUE, NULL, '2025-12-28 10:00:00', '2025-12-28 10:00:00'),
-('550e8400-e29b-41d4-a716-446655440005', 'sarah.williams@dayflow.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36vwXL0O', 'employee', TRUE, FALSE, '2026-01-01 08:00:00', '2025-09-10 11:30:00', '2026-01-01 08:00:00'),
-('550e8400-e29b-41d4-a716-446655440006', 'robert.brown@dayflow.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36vwXL0O', 'employee', TRUE, FALSE, '2025-12-31 17:30:00', '2025-08-05 09:45:00', '2025-12-31 17:30:00'),
-('550e8400-e29b-41d4-a716-446655440007', 'emily.davis@dayflow.com', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36vwXL0O', 'employee', TRUE, FALSE, '2026-01-02 10:20:00', '2025-07-12 08:15:00', '2026-01-02 10:20:00');
+('550e8400-e29b-41d4-a716-446655440002', 'john.doe@dayflow.com', '$2a$10$LWwPGY4km2l6Z/0B8JSsTurDj26dmGB8FE0N5iu1mF7AmyRI22RFG', 'employee', TRUE, FALSE, '2026-01-03 09:15:00', '2025-11-15 07:30:00', '2026-01-03 09:15:00'),
+('550e8400-e29b-41d4-a716-446655440003', 'jane.smith@dayflow.com', '$2a$10$LWwPGY4km2l6Z/0B8JSsTurDj26dmGB8FE0N5iu1mF7AmyRI22RFG', 'employee', TRUE, FALSE, '2026-01-02 14:45:00', '2025-10-20 09:00:00', '2026-01-02 14:45:00'),
+('550e8400-e29b-41d4-a716-446655440004', 'michael.johnson@dayflow.com', '$2a$10$LWwPGY4km2l6Z/0B8JSsTurDj26dmGB8FE0N5iu1mF7AmyRI22RFG', 'employee', TRUE, TRUE, NULL, '2025-12-28 10:00:00', '2025-12-28 10:00:00'),
+('550e8400-e29b-41d4-a716-446655440005', 'sarah.williams@dayflow.com', '$2a$10$LWwPGY4km2l6Z/0B8JSsTurDj26dmGB8FE0N5iu1mF7AmyRI22RFG', 'employee', TRUE, FALSE, '2026-01-01 08:00:00', '2025-09-10 11:30:00', '2026-01-01 08:00:00'),
+('550e8400-e29b-41d4-a716-446655440006', 'robert.brown@dayflow.com', '$2a$10$LWwPGY4km2l6Z/0B8JSsTurDj26dmGB8FE0N5iu1mF7AmyRI22RFG', 'employee', TRUE, FALSE, '2025-12-31 17:30:00', '2025-08-05 09:45:00', '2025-12-31 17:30:00'),
+('550e8400-e29b-41d4-a716-446655440007', 'emily.davis@dayflow.com', '$2a$10$LWwPGY4km2l6Z/0B8JSsTurDj26dmGB8FE0N5iu1mF7AmyRI22RFG', 'employee', TRUE, FALSE, '2026-01-02 10:20:00', '2025-07-12 08:15:00', '2026-01-02 10:20:00');
 
 -- =============================================
 -- DEPARTMENTS TABLE - SAMPLE DATA
@@ -238,7 +238,7 @@ VALUES
 -- Password Information:
 -- All sample user passwords are hashed with bcrypt
 -- Default password for all users: Password@123
--- Hash: $2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36vwXL0O
+-- Hash: $2a$10$LWwPGY4km2l6Z/0B8JSsTurDj26dmGB8FE0N5iu1mF7AmyRI22RFG
 --
 -- TEST ACCOUNTS:
 -- Admin: admin@dayflow.com / Password@123

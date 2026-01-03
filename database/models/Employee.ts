@@ -13,6 +13,7 @@ export interface EmployeeAttributes {
   designation: string;
   dateOfJoining: Date;
   profilePicture?: string;
+  resumeUrl?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -33,11 +34,6 @@ export const initEmployeeModel = (sequelize: Sequelize) => {
         allowNull: false,
         unique: true,
         field: 'user_id',
-        references: {
-          model: 'users',
-          key: 'id',
-        },
-        onDelete: 'CASCADE',
       },
       employeeCode: {
         type: DataTypes.STRING(50),
@@ -73,9 +69,14 @@ export const initEmployeeModel = (sequelize: Sequelize) => {
         field: 'date_of_joining',
       },
       profilePicture: {
-        type: DataTypes.LONGTEXT,
+        type: DataTypes.TEXT('long'),
         allowNull: true,
         field: 'profile_picture',
+      },
+      resumeUrl: {
+        type: DataTypes.TEXT('long'),
+        allowNull: true,
+        field: 'resume_url',
       },
       isActive: {
         type: DataTypes.BOOLEAN,
