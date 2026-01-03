@@ -89,7 +89,7 @@ class AttendanceService {
     status?: string;
   }): Promise<AttendanceRecord[]> {
     try {
-      const response = await api.get<ApiResponse<AttendanceRecord[]>>('/attendance/records', {
+      const response = await api.get<ApiResponse<AttendanceRecord[]>>('/attendance', {
         params,
       });
       

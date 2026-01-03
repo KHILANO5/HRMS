@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     LayoutDashboard,
     Calendar,
@@ -9,9 +9,12 @@ import {
     Menu,
     Search,
     Filter,
-    MapPin
+    MapPin,
+    Loader2,
+    AlertCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import attendanceService from '../../services/attendanceService';
 
 // Reusing NavItem for consistency
 interface NavItemProps {
@@ -40,7 +43,34 @@ const NavItem = ({ to, icon: Icon, label, active = false }: NavItemProps) => (
 export default function CheckInsPage() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [attendanceData, setAttendanceData] = useState<any[]>([]);
     const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+    useEffect(() => {
+        fetchTodayAttendance();
+    }, []);
+
+    const fetchTodayAttendance = async () => {
+        try {
+            setLoading(true);
+            const today = new Date().toISOString().split('T')[0];
+            // Use getAllAttendance which calls /attendance/ - backend will return records based on user role
+            const data = await attendanceService.getAllAttendance({
+                startDate: today,
+                endDate: today
+            });
+            setAttendanceData(Array.isArray(data) ? data : []);
+            setError('');
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to fetch attendance';
+            setError(errorMessage);
+            console.error('Error fetching attendance:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
@@ -48,74 +78,28 @@ export default function CheckInsPage() {
         window.location.href = '/login';
     };
 
-    // Mock Data for Employees (README Section 6.3)
-    const employees = [
-        {
-            id: 1,
-            name: 'Sarah Williams',
-            designation: 'Product Designer',
-            department: 'Design',
-            status: 'Present',
-            checkInTime: '09:05 AM',
-            image: '' // Placeholder for avatar
-        },
-        {
-            id: 2,
-            name: 'Michael Chen',
-            designation: 'Senior Developer',
-            department: 'Engineering',
-            status: 'Present',
-            checkInTime: '08:55 AM',
-            image: ''
-        },
-        {
-            id: 3,
-            name: 'Jessica Davis',
-            designation: 'HR Manager',
-            department: 'HR',
-            status: 'On Leave',
-            leaveType: 'Sick Leave',
-            image: ''
-        },
-        {
-            id: 4,
-            name: 'David Wilson',
-            designation: 'Marketing Lead',
-            department: 'Marketing',
-            status: 'Absent',
-            image: ''
-        },
-        {
-            id: 5,
-            name: 'Priya Patel',
-            designation: 'Frontend Developer',
-            department: 'Engineering',
-            status: 'Present',
-            checkInTime: '09:30 AM',
-            image: ''
-        },
-        {
-            id: 6,
-            name: 'James Rodriguez',
-            designation: 'Sales Executive',
-            department: 'Sales',
-            status: 'Present',
-            checkInTime: '09:12 AM',
-            image: ''
-        }
-    ];
+    // Filter attendance data based on search
+    const filteredEmployees = attendanceData.filter(record =>
+        record.employee?.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        record.employee?.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        record.employee?.department?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'Present':
+        switch (status.toLowerCase()) {
+            case 'present':
                 return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700 border border-green-200">Present</span>;
-            case 'On Leave':
+            case 'leave':
                 return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700 border border-yellow-200">On Leave</span>;
-            case 'Absent':
+            case 'absent':
                 return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700 border border-red-200">Absent</span>;
             default:
                 return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">Unknown</span>;
         }
+    };
+
+    const getInitials = (firstName: string, lastName: string) => {
+        return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
     };
 
     return (
@@ -206,30 +190,54 @@ export default function CheckInsPage() {
                         </button>
                     </div>
 
+                    {/* Loading State */}
+                    {loading && (
+                        <div className="flex items-center justify-center py-12">
+                            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+                        </div>
+                    )}
+
+                    {/* Error State */}
+                    {error && !loading && (
+                        <div className="card p-6 bg-red-50 border-red-200">
+                            <div className="flex items-center space-x-3">
+                                <AlertCircle className="w-6 h-6 text-red-600" />
+                                <div>
+                                    <p className="font-semibold text-red-900">Failed to load attendance</p>
+                                    <p className="text-sm text-red-700">{error}</p>
+                                </div>
+                            </div>
+                            <button onClick={fetchTodayAttendance} className="btn-primary mt-4">
+                                Retry
+                            </button>
+                        </div>
+                    )}
+
                     {/* Employee Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {employees
-                            .filter(emp => emp.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                            .map((emp) => (
-                                <div key={emp.id} className="card hover:shadow-lg transition-shadow duration-200">
+                    {!loading && !error && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredEmployees.map((record) => (
+                                <div key={record.id} className="card hover:shadow-lg transition-shadow duration-200">
                                     <div className="p-6">
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="flex items-center">
                                                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-600 font-bold text-lg">
-                                                    {emp.name.charAt(0)}
+                                                    {getInitials(record.employee?.firstName || '', record.employee?.lastName || '')}
                                                 </div>
                                                 <div className="ml-3">
-                                                    <h3 className="text-sm font-bold text-gray-900">{emp.name}</h3>
-                                                    <p className="text-xs text-gray-500">{emp.designation}</p>
+                                                    <h3 className="text-sm font-bold text-gray-900">
+                                                        {record.employee?.firstName} {record.employee?.lastName}
+                                                    </h3>
+                                                    <p className="text-xs text-gray-500">{record.employee?.designation || 'N/A'}</p>
                                                 </div>
                                             </div>
-                                            {getStatusBadge(emp.status)}
+                                            {getStatusBadge(record.status)}
                                         </div>
 
                                         <div className="border-t border-gray-100 pt-4 mt-2 space-y-2">
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="text-gray-500">Department</span>
-                                                <span className="font-medium text-gray-900">{emp.department}</span>
+                                                <span className="font-medium text-gray-900">{record.employee?.department || 'N/A'}</span>
                                             </div>
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="text-gray-500">Location</span>
@@ -238,23 +246,31 @@ export default function CheckInsPage() {
                                                     <span className="font-medium">Office</span>
                                                 </div>
                                             </div>
-                                            {emp.status === 'Present' && (
+                                            {record.status.toLowerCase() === 'present' && record.checkInTime && (
                                                 <div className="flex items-center justify-between text-sm">
                                                     <span className="text-gray-500">Check-in</span>
-                                                    <span className="font-medium text-green-600">{emp.checkInTime}</span>
+                                                    <span className="font-medium text-green-600">
+                                                        {new Date(record.checkInTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
                                                 </div>
                                             )}
-                                            {emp.status === 'On Leave' && (
+                                            {record.status.toLowerCase() === 'leave' && (
                                                 <div className="flex items-center justify-between text-sm">
                                                     <span className="text-gray-500">Reason</span>
-                                                    <span className="font-medium text-orange-600">{emp.leaveType}</span>
+                                                    <span className="font-medium text-orange-600">On Leave</span>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
                                 </div>
                             ))}
-                    </div>
+                            {filteredEmployees.length === 0 && (
+                                <div className="col-span-full text-center py-12">
+                                    <p className="text-gray-500">No attendance records found for today</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </main>
         </div>

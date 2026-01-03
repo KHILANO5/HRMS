@@ -2,7 +2,9 @@ import { Response } from 'express';
 import { body, query } from 'express-validator';
 import { AuthRequest } from '../middleware/auth';
 import { successResponse, errorResponse, paginationMeta } from '../utils/response';
-import { generateTemporaryPassword, hashPassword } from '../utils/auth';
+import { hashPassword } from '../utils/auth';
+import { generateLoginId, generateRandomPassword } from '../utils/credentialsGenerator';
+import emailService from '../services/emailService';
 import { Op } from 'sequelize';
 
 export const getAllEmployeesValidation = [
@@ -123,8 +125,12 @@ export const createEmployee = async (req: AuthRequest, res: Response) => {
       return res.status(400).json(errorResponse('Email already exists', 'EMP_002'));
     }
 
-    // Generate temporary password
-    const temporaryPassword = generateTemporaryPassword();
+    // Generate login ID based on name and joining date
+    const joiningDate = new Date(dateOfJoining);
+    const loginId = await generateLoginId(firstName, lastName, joiningDate);
+
+    // Generate random password
+    const temporaryPassword = generateRandomPassword(12);
     const hashedPassword = await hashPassword(temporaryPassword);
 
     // Create user
@@ -136,20 +142,17 @@ export const createEmployee = async (req: AuthRequest, res: Response) => {
       isFirstLogin: true,
     });
 
-    // Generate employee code
-    const empCount = await Employee.count();
-    const employeeCode = `EMP${String(empCount + 1).padStart(3, '0')}`;
-
-    // Create employee
+    // Create employee with generated login ID
     const employee = await Employee.create({
       userId: user.id,
-      employeeCode,
+      employeeId: loginId, // Use generated login ID
+      employeeCode: loginId, // Also use as employee code
       firstName,
       lastName,
       phone,
       department,
       designation,
-      dateOfJoining,
+      joiningDate: dateOfJoining,
       isActive: true,
     });
 
@@ -209,13 +212,28 @@ export const createEmployee = async (req: AuthRequest, res: Response) => {
       year: currentYear,
     });
 
+    // Send credentials email to employee
+    try {
+      await emailService.sendCredentialsEmail(
+        email,
+        `${firstName} ${lastName}`,
+        loginId,
+        temporaryPassword
+      );
+      console.log(`Credentials email sent to ${email}`);
+    } catch (emailError) {
+      console.error('Failed to send credentials email:', emailError);
+      // Don't fail employee creation if email fails
+    }
+
     res.status(201).json(
       successResponse('Employee created successfully. Credentials sent to email.', {
         employee: {
           id: employee.id,
-          employeeCode,
+          loginId,
+          employeeCode: loginId,
           email,
-          temporaryPassword, // In production, send via email
+          message: 'Login credentials have been sent to the employee email address',
         },
       })
     );

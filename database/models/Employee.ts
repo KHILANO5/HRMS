@@ -5,12 +5,14 @@ import { Sequelize } from 'sequelize';
 export interface EmployeeAttributes {
   id: string;
   userId: string;
+  employeeId: string;
   employeeCode: string;
   firstName: string;
   lastName: string;
   phone?: string;
   department: string;
   designation: string;
+  joiningDate: Date;
   dateOfJoining: Date;
   profilePicture?: string;
   resumeUrl?: string;
@@ -34,6 +36,12 @@ export const initEmployeeModel = (sequelize: Sequelize) => {
         allowNull: false,
         unique: true,
         field: 'user_id',
+      },
+      employeeId: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        unique: true,
+        field: 'employee_id',
       },
       employeeCode: {
         type: DataTypes.STRING(50),
@@ -62,6 +70,11 @@ export const initEmployeeModel = (sequelize: Sequelize) => {
       designation: {
         type: DataTypes.STRING(100),
         allowNull: false,
+      },
+      joiningDate: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'joining_date',
       },
       dateOfJoining: {
         type: DataTypes.DATE,

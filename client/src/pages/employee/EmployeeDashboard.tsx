@@ -120,6 +120,9 @@ export default function EmployeeDashboard() {
         }
     ];
 
+    // Get recent leave requests from stats
+    const recentLeaves = stats.recentLeaveRequests || [];
+
     return (
         <div className="min-h-screen bg-gray-50 flex font-sans">
             {/* Mobile Sidebar Overlay */}
@@ -240,9 +243,9 @@ export default function EmployeeDashboard() {
                         ))}
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 gap-8">
                         {/* Recent Leaves */}
-                        <div className="lg:col-span-2">
+                        <div>
                             <div className="card h-full">
                                 <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                                     <h2 className="text-lg font-bold text-gray-900">Recent Leave Requests</h2>
@@ -252,20 +255,20 @@ export default function EmployeeDashboard() {
                                         {recentLeaves.map((leave) => (
                                             <div key={leave.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
                                                 <div className="flex items-center space-x-4">
-                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${leave.type === 'Paid Leave' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'
+                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${leave.leaveType === 'paid' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'
                                                         }`}>
-                                                        {leave.type === 'Paid Leave' ? <Calendar className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                                                        {leave.leaveType === 'paid' ? <Calendar className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                                                     </div>
                                                     <div>
-                                                        <h4 className="font-medium text-gray-900">{leave.type}</h4>
-                                                        <p className="text-sm text-gray-500">{leave.date} • {leave.days} days</p>
+                                                        <h4 className="font-medium text-gray-900">{leave.leaveType === 'paid' ? 'Paid Leave' : 'Sick Leave'}</h4>
+                                                        <p className="text-sm text-gray-500">{leave.startDate} to {leave.endDate} • {leave.numberOfDays} days</p>
                                                     </div>
                                                 </div>
-                                                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${leave.status === 'Approved' ? 'bg-green-50 text-green-700 border-green-200' :
-                                                    leave.status === 'Rejected' ? 'bg-red-50 text-red-700 border-red-200' :
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${leave.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' :
+                                                    leave.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
                                                         'bg-yellow-50 text-yellow-700 border-yellow-200'
                                                     }`}>
-                                                    {leave.status}
+                                                    {leave.status.charAt(0).toUpperCase() + leave.status.slice(1)}
                                                 </span>
                                             </div>
                                         ))}
@@ -273,38 +276,6 @@ export default function EmployeeDashboard() {
                                             <p className="text-center text-gray-500 py-4">No recent leave requests</p>
                                         )}
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Upcoming Holidays */}
-                        <div className="lg:col-span-1">
-                            <div className="card h-full">
-                                <div className="p-6 border-b border-gray-100">
-                                    <h2 className="text-lg font-bold text-gray-900">Upcoming Holidays</h2>
-                                </div>
-                                <div className="p-6">
-                                    <ul className="space-y-6">
-                                        {upcomingHolidays.map((holiday, index) => (
-                                            <li key={index} className="flex items-start">
-                                                <div className="flex-shrink-0 w-12 text-center bg-blue-50 rounded-lg p-2 mr-4">
-                                                    <span className="block text-xs font-bold text-blue-600 uppercase">
-                                                        {new Date(holiday.date.split('/').reverse().join('-')).toLocaleString('default', { month: 'short' })}
-                                                    </span>
-                                                    <span className="block text-lg font-bold text-gray-900">
-                                                        {holiday.date.split('/')[0]}
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-base font-medium text-gray-900">{holiday.name}</h4>
-                                                    <p className="text-sm text-gray-500">{holiday.day}</p>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                    <button className="w-full mt-8 btn-secondary text-sm">
-                                        View Holiday Calendar
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -420,4 +391,6 @@ function CheckInWidget() {
         </div>
     );
 }
+
+
 

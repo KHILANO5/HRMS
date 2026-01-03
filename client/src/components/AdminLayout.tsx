@@ -36,7 +36,6 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
         { icon: Users, label: 'Employees', path: '/admin/employees' },
         { icon: Clock, label: 'Attendance', path: '/admin/attendance' },
         { icon: Calendar, label: 'Leave Management', path: '/admin/leave' },
-        { icon: FileText, label: 'Reports', path: '/admin/reports' },
     ];
 
     return (
