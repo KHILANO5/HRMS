@@ -5,7 +5,6 @@ import {
     User,
     FileText,
     LogOut,
-    Bell,
     Building2,
     Menu,
     Plus,
@@ -103,34 +102,22 @@ export default function LeaveRequestPage() {
                 `}
             >
                 <div className="h-full flex flex-col">
-                    <div className="h-16 flex items-center px-6 border-b border-gray-100">
+                    <Link to="/employee/dashboard" className="h-16 flex items-center px-6 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
                         <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center mr-3">
                             <Building2 className="w-5 h-5 text-white" />
                         </div>
                         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
                             Dayflow
                         </span>
-                    </div>
+                    </Link>
 
                     <nav className="flex-1 py-6 px-3 space-y-1">
                         <NavItem to="/employee/dashboard" icon={LayoutDashboard} label="Dashboard" />
-                        <NavItem to="/employee/check-ins" icon={User} label="Check-ins" />
+                        <NavItem to="/employee/check-ins" icon={User} label="Employees" />
                         <NavItem to="/employee/attendance" icon={Calendar} label="My Attendance" />
                         <NavItem to="/employee/leave" icon={FileText} label="Leave Request" active />
-                        <NavItem to="/employee/profile" icon={User} label="My Profile" />
                     </nav>
-
-                    <div className="p-4 border-t border-gray-100">
-                        <div className="flex items-center p-2 rounded-lg bg-gray-50">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                                {user.name ? user.name.charAt(0) : 'E'}
-                            </div>
-                            <div className="ml-3 overflow-hidden">
-                                <p className="text-sm font-medium text-gray-900 truncate">{user.name || 'Employee'}</p>
-                                <p className="text-xs text-gray-500 truncate">{user.email || 'employee@dayflow.com'}</p>
-                            </div>
-                        </div>
-                    </div>
+                    {/* User Profile in Sidebar - REMOVED */}
                 </div>
             </aside>
 
@@ -147,10 +134,15 @@ export default function LeaveRequestPage() {
                     <div className="flex-1 flex items-center justify-between ml-4 lg:ml-0">
                         <h1 className="text-2xl font-bold text-gray-900">Time Off</h1>
                         <div className="flex items-center space-x-4">
-                            <button className="p-2 text-gray-400 hover:text-gray-600 relative">
-                                <Bell className="w-6 h-6" />
-                                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                            </button>
+                            <Link to="/employee/profile" className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                                <div className="text-right hidden sm:block">
+                                    <p className="text-sm font-medium text-gray-900 truncate">{user.name || 'Employee'}</p>
+                                    <p className="text-xs text-gray-500 truncate">{user.email || 'employee@dayflow.com'}</p>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border-2 border-white shadow-sm">
+                                    {user.name ? user.name.charAt(0) : 'E'}
+                                </div>
+                            </Link>
                             <div className="h-8 w-px bg-gray-200 mx-2"></div>
                             <button onClick={handleLogout} className="flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors">
                                 <LogOut className="w-5 h-5" />
@@ -202,8 +194,20 @@ export default function LeaveRequestPage() {
                                     {leaveHistory.map((leave) => (
                                         <tr key={leave.id} className="hover:bg-gray-50">
                                             <td className="px-6 py-4 text-sm text-gray-900">{leave.name}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-600">{leave.startDate}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-600">{leave.endDate}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-600">
+                                                {new Date(leave.startDate).toLocaleDateString('en-GB', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric'
+                                                })}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-600">
+                                                {new Date(leave.endDate).toLocaleDateString('en-GB', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric'
+                                                })}
+                                            </td>
                                             <td className="px-6 py-4 text-sm text-blue-500">{leave.type}</td>
                                             <td className="px-6 py-4 text-sm">
                                                 <span className={`px-2 py-1 rounded-full text-xs font-semibold
@@ -256,6 +260,7 @@ export default function LeaveRequestPage() {
                                     >
                                         <option value="paid" className="bg-gray-800 text-white">[Paid time off]</option>
                                         <option value="sick" className="bg-gray-800 text-white">[Sick Leave]</option>
+                                        <option value="unpaid" className="bg-gray-800 text-white">[Unpaid Leave]</option>
                                     </select>
                                 </div>
                             </div>

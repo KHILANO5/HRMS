@@ -10,7 +10,6 @@ import {
     User,
     FileText,
     LogOut,
-    Bell,
     Building2,
     Menu
 } from 'lucide-react';
@@ -58,20 +57,60 @@ export default function AttendancePage() {
         window.location.href = '/login';
     };
 
-    // Mock Data (matches README requirements)
+    const handlePrevMonth = () => {
+        setCurrentMonth(prev => {
+            const newDate = new Date(prev);
+            newDate.setMonth(prev.getMonth() - 1);
+            return newDate;
+        });
+    };
+
+    const handleNextMonth = () => {
+        setCurrentMonth(prev => {
+            const newDate = new Date(prev);
+            newDate.setMonth(prev.getMonth() + 1);
+            return newDate;
+        });
+    };
+
+    // Mock Data (Expanded for demonstration)
     const attendanceRecords = [
-        { date: '2026-01-02', checkIn: '09:00 AM', checkOut: '06:00 PM', hours: '9h 00m', status: 'Present', type: 'On-Time' },
-        { date: '2026-01-01', checkIn: '09:15 AM', checkOut: '06:15 PM', hours: '9h 00m', status: 'Present', type: 'Late Entry' },
-        { date: '2025-12-31', checkIn: '09:00 AM', checkOut: '02:00 PM', hours: '5h 00m', status: 'Half Day', type: 'Early Exit' },
-        { date: '2025-12-30', checkIn: '-', checkOut: '-', hours: '0h 00m', status: 'Absent', type: 'Leave' },
-        { date: '2025-12-29', checkIn: '08:55 AM', checkOut: '06:05 PM', hours: '9h 10m', status: 'Present', type: 'On-Time' },
+        // January 2026
+        { date: '2026-01-15', checkIn: '09:00 AM', checkOut: '06:00 PM', hours: '9h 00m', extraHours: '0h 00m', status: 'Present', type: 'On-Time' },
+        { date: '2026-01-14', checkIn: '09:00 AM', checkOut: '06:00 PM', hours: '9h 00m', extraHours: '0h 00m', status: 'Present', type: 'On-Time' },
+        { date: '2026-01-13', checkIn: '09:10 AM', checkOut: '06:10 PM', hours: '9h 00m', extraHours: '0h 00m', status: 'Present', type: 'Late Entry' },
+        { date: '2026-01-12', checkIn: '-', checkOut: '-', hours: '0h 00m', extraHours: '0h 00m', status: 'Absent', type: 'Sick Leave' },
+        { date: '2026-01-11', checkIn: '-', checkOut: '-', hours: '0h 00m', extraHours: '0h 00m', status: 'Weekend', type: 'Weekend' },
+        { date: '2026-01-10', checkIn: '-', checkOut: '-', hours: '0h 00m', extraHours: '0h 00m', status: 'Weekend', type: 'Weekend' },
+        { date: '2026-01-09', checkIn: '09:00 AM', checkOut: '06:00 PM', hours: '9h 00m', extraHours: '0h 00m', status: 'Present', type: 'On-Time' },
+        { date: '2026-01-08', checkIn: '09:00 AM', checkOut: '06:00 PM', hours: '9h 00m', extraHours: '0h 00m', status: 'Present', type: 'On-Time' },
+        { date: '2026-01-07', checkIn: '08:55 AM', checkOut: '06:00 PM', hours: '9h 05m', extraHours: '0h 00m', status: 'Present', type: 'On-Time' },
+        { date: '2026-01-06', checkIn: '09:00 AM', checkOut: '07:00 PM', hours: '10h 00m', extraHours: '1h 00m', status: 'Present', type: 'On-Time' },
+        { date: '2026-01-05', checkIn: '09:00 AM', checkOut: '06:00 PM', hours: '9h 00m', extraHours: '0h 00m', status: 'Present', type: 'On-Time' },
+        { date: '2026-01-02', checkIn: '09:00 AM', checkOut: '06:00 PM', hours: '9h 00m', extraHours: '0h 00m', status: 'Present', type: 'On-Time' },
+        { date: '2026-01-01', checkIn: '09:15 AM', checkOut: '06:15 PM', hours: '9h 00m', extraHours: '0h 00m', status: 'Present', type: 'Late Entry' },
+
+        // December 2025
+        { date: '2025-12-31', checkIn: '09:00 AM', checkOut: '02:00 PM', hours: '5h 00m', extraHours: '0h 00m', status: 'Half Day', type: 'Early Exit' },
+        { date: '2025-12-30', checkIn: '-', checkOut: '-', hours: '0h 00m', extraHours: '0h 00m', status: 'Absent', type: 'Casual Leave' },
+        { date: '2025-12-29', checkIn: '08:55 AM', checkOut: '06:05 PM', hours: '9h 10m', extraHours: '0h 10m', status: 'Present', type: 'On-Time' },
+        { date: '2025-12-26', checkIn: '09:00 AM', checkOut: '06:00 PM', hours: '9h 00m', extraHours: '0h 00m', status: 'Present', type: 'On-Time' },
+        { date: '2025-12-25', checkIn: '-', checkOut: '-', hours: '0h 00m', extraHours: '0h 00m', status: 'Holiday', type: 'Christmas' },
     ];
 
+    // Filter records by Current Month
+    const currentMonthRecords = attendanceRecords.filter(record => {
+        const recordDate = new Date(record.date);
+        return recordDate.getMonth() === currentMonth.getMonth() &&
+            recordDate.getFullYear() === currentMonth.getFullYear();
+    });
+
+    // Calculate Stats Dynamically
     const stats = {
-        totalDays: 24,
-        daysPresent: 21,
-        daysAbsent: 1,
-        leaves: 2
+        totalDays: currentMonthRecords.filter(r => r.status !== 'Weekend' && r.status !== 'Holiday').length,
+        daysPresent: currentMonthRecords.filter(r => r.status === 'Present' || r.status === 'Half Day').length,
+        daysAbsent: currentMonthRecords.filter(r => r.status === 'Absent').length, // Absent without leave or specialized status
+        leaves: currentMonthRecords.filter(r => r.type.includes('Leave')).length
     };
 
     const getStatusColor = (status: string) => {
@@ -79,7 +118,8 @@ export default function AttendancePage() {
             case 'Present': return 'bg-green-100 text-green-700';
             case 'Absent': return 'bg-red-100 text-red-700';
             case 'Half Day': return 'bg-orange-100 text-orange-700';
-            case 'Leave': return 'bg-blue-100 text-blue-700';
+            case 'Holiday': return 'bg-purple-100 text-purple-700';
+            case 'Weekend': return 'bg-gray-100 text-gray-500';
             default: return 'bg-gray-100 text-gray-700';
         }
     };
@@ -103,14 +143,15 @@ export default function AttendancePage() {
             >
                 <div className="h-full flex flex-col">
                     {/* Logo */}
-                    <div className="h-16 flex items-center px-6 border-b border-gray-100">
+                    {/* Logo */}
+                    <Link to="/employee/dashboard" className="h-16 flex items-center px-6 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
                         <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center mr-3">
                             <Building2 className="w-5 h-5 text-white" />
                         </div>
                         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
                             Dayflow
                         </span>
-                    </div>
+                    </Link>
 
                     {/* Navigation */}
                     <nav className="flex-1 py-6 px-3 space-y-1">
@@ -122,7 +163,7 @@ export default function AttendancePage() {
                         <NavItem
                             to="/employee/check-ins"
                             icon={User}
-                            label="Check-ins"
+                            label="Employees"
                         />
                         <NavItem
                             to="/employee/attendance"
@@ -135,25 +176,9 @@ export default function AttendancePage() {
                             icon={FileText}
                             label="Leave Request"
                         />
-                        <NavItem
-                            to="/employee/profile"
-                            icon={User}
-                            label="My Profile"
-                        />
                     </nav>
 
-                    {/* User Profile in Sidebar */}
-                    <div className="p-4 border-t border-gray-100">
-                        <div className="flex items-center p-2 rounded-lg bg-gray-50">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                                {user.name ? user.name.charAt(0) : 'E'}
-                            </div>
-                            <div className="ml-3 overflow-hidden">
-                                <p className="text-sm font-medium text-gray-900 truncate">{user.name || 'Employee'}</p>
-                                <p className="text-xs text-gray-500 truncate">{user.email || 'employee@dayflow.com'}</p>
-                            </div>
-                        </div>
-                    </div>
+                    {/* User Profile in Sidebar - REMOVED */}
                 </div>
             </aside>
 
@@ -174,10 +199,15 @@ export default function AttendancePage() {
                         </div>
 
                         <div className="flex items-center space-x-4">
-                            <button className="p-2 text-gray-400 hover:text-gray-600 relative">
-                                <Bell className="w-6 h-6" />
-                                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                            </button>
+                            <Link to="/employee/profile" className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                                <div className="text-right hidden sm:block">
+                                    <p className="text-sm font-medium text-gray-900 truncate">{user.name || 'Employee'}</p>
+                                    <p className="text-xs text-gray-500 truncate">{user.email || 'employee@dayflow.com'}</p>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border-2 border-white shadow-sm">
+                                    {user.name ? user.name.charAt(0) : 'E'}
+                                </div>
+                            </Link>
                             <div className="h-8 w-px bg-gray-200 mx-2"></div>
                             <button
                                 onClick={handleLogout}
@@ -237,13 +267,19 @@ export default function AttendancePage() {
                         {/* Filters & Month Selector */}
                         <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
-                                <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-600">
+                                <button
+                                    onClick={handlePrevMonth}
+                                    className="p-2 hover:bg-gray-100 rounded-lg text-gray-600"
+                                >
                                     <ChevronLeft className="w-5 h-5" />
                                 </button>
-                                <h2 className="text-lg font-bold text-gray-900 min-w-[140px] text-center">
+                                <h2 className="text-lg font-bold text-gray-900 min-w-[170px] text-center">
                                     {formatDate(currentMonth)}
                                 </h2>
-                                <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-600">
+                                <button
+                                    onClick={handleNextMonth}
+                                    className="p-2 hover:bg-gray-100 rounded-lg text-gray-600"
+                                >
                                     <ChevronRight className="w-5 h-5" />
                                 </button>
                             </div>
@@ -267,11 +303,12 @@ export default function AttendancePage() {
                                         <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Check In</th>
                                         <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Check Out</th>
                                         <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Work Hours</th>
+                                        <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Extra Hours</th>
                                         <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {attendanceRecords.map((record, index) => (
+                                    {currentMonthRecords.map((record, index) => (
                                         <tr key={index} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
@@ -279,8 +316,16 @@ export default function AttendancePage() {
                                                         <Calendar className="w-4 h-4 text-gray-600" />
                                                     </div>
                                                     <div>
-                                                        <div className="font-medium text-gray-900">{record.date}</div>
-                                                        <div className="text-xs text-gray-500">Tuesday</div> {/* Mock Day */}
+                                                        <div className="font-medium text-gray-900">
+                                                            {new Date(record.date).toLocaleDateString('en-GB', {
+                                                                day: '2-digit',
+                                                                month: '2-digit',
+                                                                year: 'numeric'
+                                                            })}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500">
+                                                            {new Date(record.date).toLocaleDateString('en-US', { weekday: 'long' })}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -298,6 +343,9 @@ export default function AttendancePage() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className="font-medium text-gray-900">{record.hours}</span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="font-medium text-gray-600">{record.extraHours}</span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(record.status)}`}>

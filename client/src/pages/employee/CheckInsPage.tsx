@@ -5,7 +5,6 @@ import {
     User,
     FileText,
     LogOut,
-    Bell,
     Building2,
     Menu,
     Search,
@@ -40,6 +39,7 @@ const NavItem = ({ to, icon: Icon, label, active = false }: NavItemProps) => (
 
 export default function CheckInsPage() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     const handleLogout = () => {
@@ -136,34 +136,23 @@ export default function CheckInsPage() {
                 `}
             >
                 <div className="h-full flex flex-col">
-                    <div className="h-16 flex items-center px-6 border-b border-gray-100">
+                    <Link to="/employee/dashboard" className="h-16 flex items-center px-6 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
                         <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center mr-3">
                             <Building2 className="w-5 h-5 text-white" />
                         </div>
                         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
                             Dayflow
                         </span>
-                    </div>
+                    </Link>
 
                     <nav className="flex-1 py-6 px-3 space-y-1">
                         <NavItem to="/employee/dashboard" icon={LayoutDashboard} label="Dashboard" />
-                        <NavItem to="/employee/check-ins" icon={User} label="Check-ins" active />
+                        <NavItem to="/employee/check-ins" icon={User} label="Employees" active />
                         <NavItem to="/employee/attendance" icon={Calendar} label="My Attendance" />
                         <NavItem to="/employee/leave" icon={FileText} label="Leave Request" />
-                        <NavItem to="/employee/profile" icon={User} label="My Profile" />
                     </nav>
 
-                    <div className="p-4 border-t border-gray-100">
-                        <div className="flex items-center p-2 rounded-lg bg-gray-50">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                                {user.name ? user.name.charAt(0) : 'E'}
-                            </div>
-                            <div className="ml-3 overflow-hidden">
-                                <p className="text-sm font-medium text-gray-900 truncate">{user.name || 'Employee'}</p>
-                                <p className="text-xs text-gray-500 truncate">{user.email || 'employee@dayflow.com'}</p>
-                            </div>
-                        </div>
-                    </div>
+                    {/* User Profile in Sidebar - REMOVED */}
                 </div>
             </aside>
 
@@ -178,12 +167,17 @@ export default function CheckInsPage() {
                     </button>
 
                     <div className="flex-1 flex items-center justify-between ml-4 lg:ml-0">
-                        <h1 className="text-2xl font-bold text-gray-900">Team Check-ins</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Employees</h1>
                         <div className="flex items-center space-x-4">
-                            <button className="p-2 text-gray-400 hover:text-gray-600 relative">
-                                <Bell className="w-6 h-6" />
-                                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                            </button>
+                            <Link to="/employee/profile" className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                                <div className="text-right hidden sm:block">
+                                    <p className="text-sm font-medium text-gray-900 truncate">{user.name || 'Employee'}</p>
+                                    <p className="text-xs text-gray-500 truncate">{user.email || 'employee@dayflow.com'}</p>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border-2 border-white shadow-sm">
+                                    {user.name ? user.name.charAt(0) : 'E'}
+                                </div>
+                            </Link>
                             <div className="h-8 w-px bg-gray-200 mx-2"></div>
                             <button onClick={handleLogout} className="flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors">
                                 <LogOut className="w-5 h-5" />
@@ -202,6 +196,8 @@ export default function CheckInsPage() {
                                 type="text"
                                 placeholder="Search employees..."
                                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
                         <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">
@@ -212,50 +208,52 @@ export default function CheckInsPage() {
 
                     {/* Employee Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {employees.map((emp) => (
-                            <div key={emp.id} className="card hover:shadow-lg transition-shadow duration-200">
-                                <div className="p-6">
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="flex items-center">
-                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-600 font-bold text-lg">
-                                                {emp.name.charAt(0)}
+                        {employees
+                            .filter(emp => emp.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                            .map((emp) => (
+                                <div key={emp.id} className="card hover:shadow-lg transition-shadow duration-200">
+                                    <div className="p-6">
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div className="flex items-center">
+                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-600 font-bold text-lg">
+                                                    {emp.name.charAt(0)}
+                                                </div>
+                                                <div className="ml-3">
+                                                    <h3 className="text-sm font-bold text-gray-900">{emp.name}</h3>
+                                                    <p className="text-xs text-gray-500">{emp.designation}</p>
+                                                </div>
                                             </div>
-                                            <div className="ml-3">
-                                                <h3 className="text-sm font-bold text-gray-900">{emp.name}</h3>
-                                                <p className="text-xs text-gray-500">{emp.designation}</p>
-                                            </div>
+                                            {getStatusBadge(emp.status)}
                                         </div>
-                                        {getStatusBadge(emp.status)}
-                                    </div>
 
-                                    <div className="border-t border-gray-100 pt-4 mt-2 space-y-2">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-gray-500">Department</span>
-                                            <span className="font-medium text-gray-900">{emp.department}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-gray-500">Location</span>
-                                            <div className="flex items-center text-gray-900">
-                                                <MapPin className="w-3 h-3 mr-1 text-gray-400" />
-                                                <span className="font-medium">Office</span>
-                                            </div>
-                                        </div>
-                                        {emp.status === 'Present' && (
+                                        <div className="border-t border-gray-100 pt-4 mt-2 space-y-2">
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-500">Check-in</span>
-                                                <span className="font-medium text-green-600">{emp.checkInTime}</span>
+                                                <span className="text-gray-500">Department</span>
+                                                <span className="font-medium text-gray-900">{emp.department}</span>
                                             </div>
-                                        )}
-                                        {emp.status === 'On Leave' && (
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-500">Reason</span>
-                                                <span className="font-medium text-orange-600">{emp.leaveType}</span>
+                                                <span className="text-gray-500">Location</span>
+                                                <div className="flex items-center text-gray-900">
+                                                    <MapPin className="w-3 h-3 mr-1 text-gray-400" />
+                                                    <span className="font-medium">Office</span>
+                                                </div>
                                             </div>
-                                        )}
+                                            {emp.status === 'Present' && (
+                                                <div className="flex items-center justify-between text-sm">
+                                                    <span className="text-gray-500">Check-in</span>
+                                                    <span className="font-medium text-green-600">{emp.checkInTime}</span>
+                                                </div>
+                                            )}
+                                            {emp.status === 'On Leave' && (
+                                                <div className="flex items-center justify-between text-sm">
+                                                    <span className="text-gray-500">Reason</span>
+                                                    <span className="font-medium text-orange-600">{emp.leaveType}</span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
                     </div>
                 </div>
             </main>

@@ -6,6 +6,7 @@ import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import AttendancePage from './pages/employee/AttendancePage';
 import CheckInsPage from './pages/employee/CheckInsPage';
 import LeaveRequestPage from './pages/employee/LeaveRequestPage';
+import ProfilePage from './pages/employee/ProfilePage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import './index.css';
 
@@ -20,6 +21,7 @@ function App() {
         <Route path="/employee/attendance" element={<AttendancePage />} />
         <Route path="/employee/check-ins" element={<CheckInsPage />} />
         <Route path="/employee/leave" element={<LeaveRequestPage />} />
+        <Route path="/employee/profile" element={<ProfilePage />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         {/* Add more routes as we build them */}
       </Routes>

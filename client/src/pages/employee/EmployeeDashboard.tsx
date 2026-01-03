@@ -6,7 +6,6 @@ import {
     FileText,
     User,
     LogOut,
-    Bell,
     CheckCircle2,
     XCircle,
     AlertCircle,
@@ -66,13 +65,13 @@ export default function EmployeeDashboard() {
     ];
 
     const recentLeaves = [
-        { id: 1, type: 'Paid Leave', date: 'Jan 10 - Jan 12', days: 3, status: 'Approved' },
-        { id: 2, type: 'Sick Leave', date: 'Dec 28', days: 1, status: 'Rejected' },
+        { id: 1, type: 'Paid Leave', date: '10/01/2026 - 12/01/2026', days: 3, status: 'Approved' },
+        { id: 2, type: 'Sick Leave', date: '28/12/2025', days: 1, status: 'Rejected' },
     ];
 
     const upcomingHolidays = [
-        { name: 'Republic Day', date: 'Jan 26, 2026', day: 'Monday' },
-        { name: 'Holi', date: 'Mar 03, 2026', day: 'Tuesday' },
+        { name: 'Republic Day', date: '26/01/2026', day: 'Monday' },
+        { name: 'Holi', date: '03/03/2026', day: 'Tuesday' },
     ];
 
     const handleLogout = () => {
@@ -100,14 +99,15 @@ export default function EmployeeDashboard() {
             >
                 <div className="h-full flex flex-col">
                     {/* Logo */}
-                    <div className="h-16 flex items-center px-6 border-b border-gray-100">
+                    {/* Logo */}
+                    <Link to="/employee/dashboard" className="h-16 flex items-center px-6 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
                         <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center mr-3">
                             <Building2 className="w-5 h-5 text-white" />
                         </div>
                         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
                             Dayflow
                         </span>
-                    </div>
+                    </Link>
 
                     {/* Navigation */}
                     <nav className="flex-1 py-6 px-3 space-y-1">
@@ -119,7 +119,7 @@ export default function EmployeeDashboard() {
                         <NavItem
                             to="/employee/check-ins"
                             icon={User}
-                            label="Check-ins"
+                            label="Employees"
                         />
                         <NavItem
                             to="/employee/attendance"
@@ -132,25 +132,9 @@ export default function EmployeeDashboard() {
                             icon={FileText}
                             label="Leave Request"
                         />
-                        <NavItem
-                            to="/employee/profile"
-                            icon={User}
-                            label="My Profile"
-                        />
                     </nav>
 
-                    {/* User Profile in Sidebar (Optional bottom section) */}
-                    <div className="p-4 border-t border-gray-100">
-                        <div className="flex items-center p-2 rounded-lg bg-gray-50">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                                {user.name ? user.name.charAt(0) : 'E'}
-                            </div>
-                            <div className="ml-3 overflow-hidden">
-                                <p className="text-sm font-medium text-gray-900 truncate">{user.name || 'Employee'}</p>
-                                <p className="text-xs text-gray-500 truncate">{user.email || 'employee@dayflow.com'}</p>
-                            </div>
-                        </div>
-                    </div>
+                    {/* User Profile in Sidebar - REMOVED */}
                 </div>
             </aside>
 
@@ -172,10 +156,15 @@ export default function EmployeeDashboard() {
                         </div>
 
                         <div className="flex items-center space-x-4">
-                            <button className="p-2 text-gray-400 hover:text-gray-600 relative">
-                                <Bell className="w-6 h-6" />
-                                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                            </button>
+                            <Link to="/employee/profile" className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                                <div className="text-right hidden sm:block">
+                                    <p className="text-sm font-medium text-gray-900 truncate">{user.name || 'Employee'}</p>
+                                    <p className="text-xs text-gray-500 truncate">{user.email || 'employee@dayflow.com'}</p>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border-2 border-white shadow-sm">
+                                    {user.name ? user.name.charAt(0) : 'E'}
+                                </div>
+                            </Link>
                             <div className="h-8 w-px bg-gray-200 mx-2"></div>
                             <button
                                 onClick={handleLogout}
@@ -217,7 +206,6 @@ export default function EmployeeDashboard() {
                             <div className="card h-full">
                                 <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                                     <h2 className="text-lg font-bold text-gray-900">Recent Leave Requests</h2>
-                                    <Link to="#" className="text-sm text-blue-600 hover:text-blue-700 font-medium">View All</Link>
                                 </div>
                                 <div className="p-6">
                                     <div className="space-y-4">
@@ -261,10 +249,10 @@ export default function EmployeeDashboard() {
                                             <li key={index} className="flex items-start">
                                                 <div className="flex-shrink-0 w-12 text-center bg-blue-50 rounded-lg p-2 mr-4">
                                                     <span className="block text-xs font-bold text-blue-600 uppercase">
-                                                        {holiday.date.split(',')[0].split(' ')[0]}
+                                                        {new Date(holiday.date.split('/').reverse().join('-')).toLocaleString('default', { month: 'short' })}
                                                     </span>
                                                     <span className="block text-lg font-bold text-gray-900">
-                                                        {holiday.date.split(',')[0].split(' ')[1]}
+                                                        {holiday.date.split('/')[0]}
                                                     </span>
                                                 </div>
                                                 <div>
