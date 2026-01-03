@@ -64,7 +64,7 @@ export const initLeaveRequestModel = (sequelize: Sequelize) => {
         allowNull: false,
       },
       attachmentUrl: {
-        type: DataTypes.LONGTEXT,
+        type: DataTypes.TEXT('long'),
         allowNull: true,
         field: 'attachment_url',
       },

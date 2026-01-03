@@ -1,18 +1,23 @@
 # Dependencies
 node_modules/
 jspm_packages/
+/.pnp
+.pnp.js
 
-# TypeScript Build Output
+# Build Output
 /dist
 /build
 *.tsbuildinfo
 
-# Environment Variables
+# Environment Variables (CRITICAL: DO NOT COMMIT .env)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Keep .env.example for documentation
+!.env.example
 
 # Logs
 logs/
@@ -23,50 +28,52 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Runtime data
+# Testing
+coverage/
+*.lcov
+.nyc_output
+*.test.*.snap
+
+# Runtime Data
 pids/
 *.pid
 *.seed
 *.pid.lock
 
-# Coverage directory used by testing tools
-coverage/
-*.lcov
-.nyc_output
+# Uploads (keep folder structure but ignore contents)
+uploads/*
+!uploads/.gitkeep
 
-# Uploads and temporary files
-uploads/
+# Temporary Files
 temp/
 tmp/
 *.tmp
+*.temp
+*.bak
+*.backup
 
 # Database
 *.sqlite
 *.sqlite3
 *.db
 
+# Cache
+.npm
+.eslintcache
+.node_repl_history
+.cache
+
+# Operating System
+.DS_Store
+Thumbs.db
+
 # IDE
-.vscode/
+.vscode/*
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo
 *~
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Optional REPL history
-.node_repl_history
-
-# dotenv environment variable files
-.env.test
-
-# Diagnostic reports
+# Diagnostic Reports
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

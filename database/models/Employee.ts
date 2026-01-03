@@ -5,14 +5,17 @@ import { Sequelize } from 'sequelize';
 export interface EmployeeAttributes {
   id: string;
   userId: string;
+  employeeId: string;
   employeeCode: string;
   firstName: string;
   lastName: string;
   phone?: string;
   department: string;
   designation: string;
+  joiningDate: Date;
   dateOfJoining: Date;
   profilePicture?: string;
+  resumeUrl?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -33,11 +36,12 @@ export const initEmployeeModel = (sequelize: Sequelize) => {
         allowNull: false,
         unique: true,
         field: 'user_id',
-        references: {
-          model: 'users',
-          key: 'id',
-        },
-        onDelete: 'CASCADE',
+      },
+      employeeId: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        unique: true,
+        field: 'employee_id',
       },
       employeeCode: {
         type: DataTypes.STRING(50),
@@ -67,15 +71,25 @@ export const initEmployeeModel = (sequelize: Sequelize) => {
         type: DataTypes.STRING(100),
         allowNull: false,
       },
+      joiningDate: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'joining_date',
+      },
       dateOfJoining: {
         type: DataTypes.DATE,
         allowNull: false,
         field: 'date_of_joining',
       },
       profilePicture: {
-        type: DataTypes.LONGTEXT,
+        type: DataTypes.TEXT('long'),
         allowNull: true,
         field: 'profile_picture',
+      },
+      resumeUrl: {
+        type: DataTypes.TEXT('long'),
+        allowNull: true,
+        field: 'resume_url',
       },
       isActive: {
         type: DataTypes.BOOLEAN,

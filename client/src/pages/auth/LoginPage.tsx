@@ -7,47 +7,15 @@ import {
     EyeOff,
     Building2,
     AlertCircle,
-    Loader2,
-    Info,
-    Copy,
-    Check
+    Loader2
 } from 'lucide-react';
-
-// Dummy credentials for testing
-const DUMMY_USERS = {
-    admin: {
-        email: 'admin@company.com',
-        password: 'Admin@123',
-        role: 'admin' as const,
-        isFirstLogin: false,
-        user: {
-            id: 'admin-001',
-            email: 'admin@company.com',
-            role: 'admin' as const,
-            name: 'Admin User'
-        }
-    },
-    employee: {
-        email: 'employee@company.com',
-        password: 'Employee@123',
-        role: 'employee' as const,
-        isFirstLogin: false,
-        user: {
-            id: 'emp-001',
-            email: 'employee@company.com',
-            role: 'employee' as const,
-            name: 'John Doe'
-        }
-    }
-};
+import authService from '../../services/authService';
 
 export default function LoginPage() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const [showCredentials, setShowCredentials] = useState(true);
-    const [copiedField, setCopiedField] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         email: '',
@@ -61,20 +29,6 @@ export default function LoginPage() {
         });
         // Clear error when user starts typing
         if (error) setError('');
-    };
-
-    const copyToClipboard = (text: string, field: string) => {
-        navigator.clipboard.writeText(text);
-        setCopiedField(field);
-        setTimeout(() => setCopiedField(null), 2000);
-    };
-
-    const fillCredentials = (userType: 'admin' | 'employee') => {
-        const user = DUMMY_USERS[userType];
-        setFormData({
-            email: user.email,
-            password: user.password
-        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -98,39 +52,26 @@ export default function LoginPage() {
         }
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // Call real API login
+            const response = await authService.login({
+                email: formData.email,
+                password: formData.password
+            });
 
-            // Check against dummy credentials
-            let authenticatedUser = null;
-
-            if (formData.email === DUMMY_USERS.admin.email && formData.password === DUMMY_USERS.admin.password) {
-                authenticatedUser = DUMMY_USERS.admin;
-            } else if (formData.email === DUMMY_USERS.employee.email && formData.password === DUMMY_USERS.employee.password) {
-                authenticatedUser = DUMMY_USERS.employee;
-            }
-
-            if (authenticatedUser) {
-                // Store tokens (in production, use httpOnly cookies)
-                localStorage.setItem('accessToken', 'mock_token_' + authenticatedUser.role);
-                localStorage.setItem('user', JSON.stringify(authenticatedUser.user));
-
-                // Check if first-time login
-                if (authenticatedUser.isFirstLogin) {
-                    navigate('/change-password-first-login');
-                } else {
-                    // Redirect based on role
-                    if (authenticatedUser.role === 'admin') {
-                        navigate('/admin/dashboard');
-                    } else {
-                        navigate('/employee/dashboard');
-                    }
-                }
+            // Check if first-time login
+            if (response.user.isFirstLogin) {
+                navigate('/change-password-first-login');
             } else {
-                setError('Invalid email or password. Please try again.');
+                // Redirect based on role
+                if (response.user.role === 'admin') {
+                    navigate('/admin/dashboard');
+                } else {
+                    navigate('/employee/dashboard');
+                }
             }
         } catch (err) {
-            setError('An error occurred. Please try again.');
+            const errorMessage = err instanceof Error ? err.message : 'An error occurred. Please try again.';
+            setError(errorMessage);
             console.error('Login error:', err);
         } finally {
             setIsLoading(false);
@@ -160,108 +101,6 @@ export default function LoginPage() {
                     <h2 className="text-2xl font-bold text-gray-900 mt-6">Welcome Back</h2>
                     <p className="text-gray-600 mt-2">Sign in to access your account</p>
                 </div>
-
-                {/* Demo Credentials Box */}
-                {showCredentials && (
-                    <div className="card p-6 mb-6 animate-slide-up border-2 border-blue-200">
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center space-x-2">
-                                <Info className="w-5 h-5 text-blue-600" />
-                                <h3 className="font-semibold text-gray-900">Demo Credentials</h3>
-                            </div>
-                            <button
-                                onClick={() => setShowCredentials(false)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                ✕
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            {/* Admin Credentials */}
-                            <div className="bg-purple-50 rounded-lg p-4">
-                                <div className="flex items-center justify-between mb-2">
-                                    <p className="text-sm font-semibold text-purple-900">Admin Account</p>
-                                    <button
-                                        onClick={() => fillCredentials('admin')}
-                                        className="text-xs px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-                                    >
-                                        Auto-fill
-                                    </button>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between bg-white rounded px-3 py-2">
-                                        <span className="text-sm text-gray-600 font-mono">{DUMMY_USERS.admin.email}</span>
-                                        <button
-                                            onClick={() => copyToClipboard(DUMMY_USERS.admin.email, 'admin-email')}
-                                            className="text-gray-400 hover:text-gray-600"
-                                        >
-                                            {copiedField === 'admin-email' ? (
-                                                <Check className="w-4 h-4 text-green-600" />
-                                            ) : (
-                                                <Copy className="w-4 h-4" />
-                                            )}
-                                        </button>
-                                    </div>
-                                    <div className="flex items-center justify-between bg-white rounded px-3 py-2">
-                                        <span className="text-sm text-gray-600 font-mono">{DUMMY_USERS.admin.password}</span>
-                                        <button
-                                            onClick={() => copyToClipboard(DUMMY_USERS.admin.password, 'admin-pass')}
-                                            className="text-gray-400 hover:text-gray-600"
-                                        >
-                                            {copiedField === 'admin-pass' ? (
-                                                <Check className="w-4 h-4 text-green-600" />
-                                            ) : (
-                                                <Copy className="w-4 h-4" />
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Employee Credentials */}
-                            <div className="bg-blue-50 rounded-lg p-4">
-                                <div className="flex items-center justify-between mb-2">
-                                    <p className="text-sm font-semibold text-blue-900">Employee Account</p>
-                                    <button
-                                        onClick={() => fillCredentials('employee')}
-                                        className="text-xs px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                                    >
-                                        Auto-fill
-                                    </button>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between bg-white rounded px-3 py-2">
-                                        <span className="text-sm text-gray-600 font-mono">{DUMMY_USERS.employee.email}</span>
-                                        <button
-                                            onClick={() => copyToClipboard(DUMMY_USERS.employee.email, 'emp-email')}
-                                            className="text-gray-400 hover:text-gray-600"
-                                        >
-                                            {copiedField === 'emp-email' ? (
-                                                <Check className="w-4 h-4 text-green-600" />
-                                            ) : (
-                                                <Copy className="w-4 h-4" />
-                                            )}
-                                        </button>
-                                    </div>
-                                    <div className="flex items-center justify-between bg-white rounded px-3 py-2">
-                                        <span className="text-sm text-gray-600 font-mono">{DUMMY_USERS.employee.password}</span>
-                                        <button
-                                            onClick={() => copyToClipboard(DUMMY_USERS.employee.password, 'emp-pass')}
-                                            className="text-gray-400 hover:text-gray-600"
-                                        >
-                                            {copiedField === 'emp-pass' ? (
-                                                <Check className="w-4 h-4 text-green-600" />
-                                            ) : (
-                                                <Copy className="w-4 h-4" />
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
                 {/* Login Card */}
                 <div className="card p-8 animate-slide-up">
@@ -388,18 +227,6 @@ export default function LoginPage() {
                         </p>
                     </div>
                 </div>
-
-                {/* Show Credentials Button */}
-                {!showCredentials && (
-                    <div className="text-center mt-4">
-                        <button
-                            onClick={() => setShowCredentials(true)}
-                            className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                        >
-                            Show Demo Credentials
-                        </button>
-                    </div>
-                )}
 
                 {/* Back to Home */}
                 <div className="text-center mt-6">

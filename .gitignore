@@ -1,3 +1,49 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Environment Variables (DO NOT COMMIT SECRETS)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build Output
+/dist
+/build
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Testing
+/coverage
+*.test.*.snap
+.nyc_output
+
+# Uploads and Temporary Files
+uploads/*
+!uploads/.gitkeep
+temp/
+tmp/
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Database Files
+*.sqlite
+*.sqlite3
+*.db
+
 # Operating System Files
 .DS_Store
 .DS_Store?
@@ -9,7 +55,8 @@ Thumbs.db
 desktop.ini
 
 # IDE and Editor Files
-.vscode/
+.vscode/*
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo
@@ -20,33 +67,9 @@ desktop.ini
 *.sublime-project
 *.sublime-workspace
 
-# Environment Variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-pnpm-debug.log*
-
 # Miscellaneous
-*.bak
-*.tmp
-*.temp
 .cache
-.temp
-
-# Documentation Build Files
-*.pdf
-*.docx
-
-# Backup Files
-*.backup
-*~
+.eslintcache
+.stylelintcache
+.node_repl_history
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
