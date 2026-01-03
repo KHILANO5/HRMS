@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
+import employeeService from '../../services/employeeService';
 import {
     Save,
     X,
@@ -106,18 +107,28 @@ export default function AddEmployeePage() {
         setIsLoading(true);
 
         try {
-            // TODO: Replace with actual API call
-            // const response = await fetch('/api/v1/employees', {
-            //   method: 'POST',
-            //   headers: {
-            //     'Content-Type': 'application/json',
-            //     'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-            //   },
-            //   body: JSON.stringify(formData)
-            // });
-
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Create employee via API
+            await employeeService.createEmployee({
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                phone: formData.phone,
+                department: formData.department,
+                designation: formData.designation,
+                dateOfJoining: formData.dateOfJoining,
+                address: {
+                    street: formData.street,
+                    city: formData.city,
+                    state: formData.state,
+                    zipCode: formData.zipCode,
+                    country: formData.country
+                },
+                emergencyContact: {
+                    name: formData.emergencyContactName,
+                    relationship: formData.emergencyContactRelationship,
+                    phone: formData.emergencyContactPhone
+                }
+            });
 
             setSuccess(true);
 
@@ -127,7 +138,8 @@ export default function AddEmployeePage() {
             }, 2000);
 
         } catch (err) {
-            setError('Failed to create employee. Please try again.');
+            const errorMessage = err instanceof Error ? err.message : 'Failed to create employee. Please try again.';
+            setError(errorMessage);
             console.error('Error creating employee:', err);
         } finally {
             setIsLoading(false);

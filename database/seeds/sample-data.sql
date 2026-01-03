@@ -42,7 +42,10 @@ VALUES
 ('660e8400-e29b-41d4-a716-446655440002', 'Human Resources', 'HR and People Management', NULL, TRUE, '2025-06-01 08:00:00', '2025-06-01 08:00:00'),
 ('660e8400-e29b-41d4-a716-446655440003', 'Finance', 'Finance and Accounting', NULL, TRUE, '2025-06-01 08:00:00', '2025-06-01 08:00:00'),
 ('660e8400-e29b-41d4-a716-446655440004', 'Sales', 'Sales and Business Development', NULL, TRUE, '2025-06-01 08:00:00', '2025-06-01 08:00:00'),
-('660e8400-e29b-41d4-a716-446655440005', 'Marketing', 'Marketing and Communications', NULL, TRUE, '2025-06-01 08:00:00', '2025-06-01 08:00:00');
+('660e8400-e29b-41d4-a716-446655440005', 'Marketing', 'Marketing and Communications', NULL, TRUE, '2025-06-01 08:00:00', '2025-06-01 08:00:00'),
+('660e8400-e29b-41d4-a716-446655440006', 'IT', 'Information Technology and Support', NULL, TRUE, '2025-06-01 08:00:00', '2025-06-01 08:00:00'),
+('660e8400-e29b-41d4-a716-446655440007', 'Operations', 'Operations and Logistics', NULL, TRUE, '2025-06-01 08:00:00', '2025-06-01 08:00:00'),
+('660e8400-e29b-41d4-a716-446655440008', 'Admin', 'Administration and Management', NULL, TRUE, '2025-06-01 08:00:00', '2025-06-01 08:00:00');
 
 -- =============================================
 -- DESIGNATIONS TABLE - SAMPLE DATA

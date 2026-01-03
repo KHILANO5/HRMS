@@ -12,29 +12,30 @@ import {
     Copy,
     Check
 } from 'lucide-react';
+import authService from '../../services/authService';
 
-// Dummy credentials for testing
+// Dummy credentials for testing - UPDATED TO MATCH BACKEND
 const DUMMY_USERS = {
     admin: {
-        email: 'admin@company.com',
-        password: 'Admin@123',
+        email: 'admin@dayflow.com',
+        password: 'Password@123',
         role: 'admin' as const,
         isFirstLogin: false,
         user: {
             id: 'admin-001',
-            email: 'admin@company.com',
+            email: 'admin@dayflow.com',
             role: 'admin' as const,
             name: 'Admin User'
         }
     },
     employee: {
-        email: 'employee@company.com',
-        password: 'Employee@123',
+        email: 'john.doe@dayflow.com',
+        password: 'Password@123',
         role: 'employee' as const,
         isFirstLogin: false,
         user: {
             id: 'emp-001',
-            email: 'employee@company.com',
+            email: 'john.doe@dayflow.com',
             role: 'employee' as const,
             name: 'John Doe'
         }
@@ -98,39 +99,26 @@ export default function LoginPage() {
         }
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // Call real API login
+            const response = await authService.login({
+                email: formData.email,
+                password: formData.password
+            });
 
-            // Check against dummy credentials
-            let authenticatedUser = null;
-
-            if (formData.email === DUMMY_USERS.admin.email && formData.password === DUMMY_USERS.admin.password) {
-                authenticatedUser = DUMMY_USERS.admin;
-            } else if (formData.email === DUMMY_USERS.employee.email && formData.password === DUMMY_USERS.employee.password) {
-                authenticatedUser = DUMMY_USERS.employee;
-            }
-
-            if (authenticatedUser) {
-                // Store tokens (in production, use httpOnly cookies)
-                localStorage.setItem('accessToken', 'mock_token_' + authenticatedUser.role);
-                localStorage.setItem('user', JSON.stringify(authenticatedUser.user));
-
-                // Check if first-time login
-                if (authenticatedUser.isFirstLogin) {
-                    navigate('/change-password-first-login');
-                } else {
-                    // Redirect based on role
-                    if (authenticatedUser.role === 'admin') {
-                        navigate('/admin/dashboard');
-                    } else {
-                        navigate('/employee/dashboard');
-                    }
-                }
+            // Check if first-time login
+            if (response.user.isFirstLogin) {
+                navigate('/change-password-first-login');
             } else {
-                setError('Invalid email or password. Please try again.');
+                // Redirect based on role
+                if (response.user.role === 'admin') {
+                    navigate('/admin/dashboard');
+                } else {
+                    navigate('/employee/dashboard');
+                }
             }
         } catch (err) {
-            setError('An error occurred. Please try again.');
+            const errorMessage = err instanceof Error ? err.message : 'An error occurred. Please try again.';
+            setError(errorMessage);
             console.error('Login error:', err);
         } finally {
             setIsLoading(false);

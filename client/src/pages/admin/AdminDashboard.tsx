@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
     Shield,
@@ -12,84 +12,68 @@ import {
     Menu,
     X,
     BarChart3,
-    FileText
+    FileText,
+    Loader2
 } from 'lucide-react';
+import dashboardService, { type AdminDashboardStats } from '../../services/dashboardService';
+import authService from '../../services/authService';
 
 export default function AdminDashboard() {
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [stats, setStats] = useState<AdminDashboardStats | null>(null);
+    const user = authService.getCurrentUser();
 
-    const handleLogout = () => {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('user');
+    useEffect(() => {
+        fetchDashboardStats();
+    }, []);
+
+    const fetchDashboardStats = async () => {
+        try {
+            setLoading(true);
+            const data = await dashboardService.getAdminStats();
+            setStats(data);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to fetch dashboard stats';
+            setError(errorMessage);
+            console.error('Dashboard error:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLogout = async () => {
+        await authService.logout();
         navigate('/login');
     };
 
-    // Mock data - Replace with API calls
-    const stats = {
-        totalEmployees: 248,
-        presentToday: 234,
-        absentToday: 6,
-        onLeaveToday: 8,
-        pendingLeaveRequests: 12,
-        newEmployeesThisMonth: 5
-    };
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+                    <p className="text-gray-600">Loading dashboard...</p>
+                </div>
+            </div>
+        );
+    }
 
-    const recentLeaveRequests = [
-        {
-            id: '1',
-            employeeId: 'EMP003',
-            employeeName: 'John Doe',
-            department: 'Finance',
-            leaveType: 'Paid Leave',
-            startDate: '2026-01-10',
-            endDate: '2026-01-12',
-            days: 3,
-            status: 'pending'
-        },
-        {
-            id: '2',
-            employeeId: 'EMP002',
-            employeeName: 'Jane Smith',
-            department: 'HR',
-            leaveType: 'Sick Leave',
-            startDate: '2026-01-08',
-            endDate: '2026-01-09',
-            days: 2,
-            status: 'pending'
-        },
-        {
-            id: '3',
-            employeeId: 'EMP012',
-            employeeName: 'Mike Johnson',
-            department: 'IT',
-            leaveType: 'Paid Leave',
-            startDate: '2026-01-15',
-            endDate: '2026-01-20',
-            days: 6,
-            status: 'pending'
-        }
-    ];
-
-    const recentEmployees = [
-        {
-            id: '1',
-            name: 'Sarah Williams',
-            designation: 'Software Engineer',
-            department: 'IT',
-            joinDate: '2026-01-02',
-            status: 'active'
-        },
-        {
-            id: '2',
-            name: 'Robert Brown',
-            designation: 'HR Manager',
-            department: 'Human Resources',
-            joinDate: '2025-12-28',
-            status: 'active'
-        }
-    ];
+    if (error || !stats) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+                <div className="card p-8 max-w-md text-center">
+                    <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Failed to Load Dashboard</h3>
+                    <p className="text-gray-600 mb-6">{error || 'Unable to fetch dashboard data'}</p>
+                    <button onClick={fetchDashboardStats} className="btn-primary">
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     const menuItems = [
         { icon: BarChart3, label: 'Dashboard', path: '/admin/dashboard', active: true },
@@ -159,7 +143,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
-                            <p className="text-sm text-gray-600">Welcome back, {user.name || 'Admin'}</p>
+                            <p className="text-sm text-gray-600">Welcome back, {user?.email || 'Admin'}</p>
                         </div>
 
                         <div className="flex items-center space-x-4">
@@ -168,10 +152,10 @@ export default function AdminDashboard() {
                                 className="flex items-center space-x-2 px-4 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg transition-colors"
                             >
                                 <div className="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center">
-                                    <span className="font-bold text-xs">{user.name ? user.name[0] : 'A'}</span>
+                                    <span className="font-bold text-xs">{user?.email?.[0]?.toUpperCase() || 'A'}</span>
                                 </div>
                                 <div className="text-left hidden md:block">
-                                    <p className="text-sm font-medium">{user.name || 'Admin User'}</p>
+                                    <p className="text-sm font-medium">{user?.email || 'Admin User'}</p>
                                     <p className="text-xs opacity-75">My Profile</p>
                                 </div>
                             </Link>
@@ -249,30 +233,39 @@ export default function AdminDashboard() {
                             </div>
 
                             <div className="space-y-4">
-                                {recentLeaveRequests.map((request) => (
-                                    <div key={request.id} className="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div>
-                                                <h4 className="font-semibold text-gray-900">{request.employeeName}</h4>
-                                                <p className="text-sm text-gray-600">{request.leaveType}</p>
+                                {stats.recentLeaveRequests.length > 0 ? (
+                                    stats.recentLeaveRequests.map((request) => (
+                                        <div key={request.id} className="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                                            <div className="flex items-start justify-between mb-3">
+                                                <div>
+                                                    <h4 className="font-semibold text-gray-900">{request.employeeName}</h4>
+                                                    <p className="text-sm text-gray-600">{request.employeeCode} • {request.department}</p>
+                                                </div>
+                                                <span className="px-3 py-1 text-xs font-semibold bg-yellow-100 text-yellow-800 rounded-full">
+                                                    {request.status}
+                                                </span>
                                             </div>
-                                            <span className="badge badge-warning">{request.days} days</span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-                                            <span>{new Date(request.startDate).toLocaleDateString()} - {new Date(request.endDate).toLocaleDateString()}</span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between text-sm">
-                                            <div className="flex items-center space-x-2 text-gray-600">
-                                                <Users className="w-4 h-4" />
-                                                <span>{request.department}</span>
+                                            <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                                <span>{request.leaveType}</span>
+                                                <span>•</span>
+                                                <span>{new Date(request.startDate).toLocaleDateString()} - {new Date(request.endDate).toLocaleDateString()}</span>
+                                                <span>•</span>
+                                                <span>{request.numberOfDays} days</span>
                                             </div>
-                                            <span className="text-gray-500">{request.employeeId}</span>
+                                            <p className="text-sm text-gray-700 mt-2">{request.reason}</p>
                                         </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-gray-500">
+                                        <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                        <p>No pending leave requests</p>
                                     </div>
-                                ))}
+                                )}
                             </div>
+
+                            <Link to="/admin/leave" className="block mt-4 text-center text-sm text-purple-600 hover:text-purple-700 font-semibold">
+                                View All Leave Requests →
+                            </Link>
                         </div>
 
                         {/* Recent Employees */}
@@ -282,25 +275,33 @@ export default function AdminDashboard() {
                             </div>
 
                             <div className="space-y-4">
-                                {recentEmployees.map((employee) => (
-                                    <div key={employee.id} className="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div>
-                                                <h4 className="font-semibold text-gray-900">{employee.name}</h4>
-                                                <p className="text-sm text-gray-600">{employee.designation}</p>
+                                {stats.recentEmployees.length > 0 ? (
+                                    stats.recentEmployees.map((employee) => (
+                                        <div key={employee.id} className="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                                            <div className="flex items-start justify-between mb-2">
+                                                <div>
+                                                    <h4 className="font-semibold text-gray-900">{employee.name}</h4>
+                                                    <p className="text-sm text-gray-600">{employee.designation}</p>
+                                                </div>
+                                                <span className="badge badge-success">Active</span>
                                             </div>
-                                            <span className="badge badge-success">Active</span>
-                                        </div>
 
-                                        <div className="flex items-center justify-between text-sm text-gray-600">
-                                            <span className="flex items-center space-x-1">
-                                                <Users className="w-4 h-4" />
-                                                <span>{employee.department}</span>
-                                            </span>
-                                            <span>Joined {new Date(employee.joinDate).toLocaleDateString()}</span>
+                                            <div className="flex items-center justify-between text-sm text-gray-600">
+                                                <span className="flex items-center space-x-1">
+                                                    <Users className="w-4 h-4" />
+                                                    <span>{employee.department}</span>
+                                                </span>
+                                                <span>Joined {new Date(employee.dateOfJoining).toLocaleDateString()}</span>
+                                            </div>
+                                            <p className="text-xs text-gray-500 mt-1">{employee.employeeCode}</p>
                                         </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-gray-500">
+                                        <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                        <p>No recent employees</p>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
                     </div>

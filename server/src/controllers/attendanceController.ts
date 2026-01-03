@@ -114,3 +114,121 @@ export const getAttendanceByDate = async (req: AuthRequest, res: Response) => {
     res.status(500).json(errorResponse('Failed to retrieve attendance', 'GEN_003'));
   }
 };
+
+export const checkIn = async (req: AuthRequest, res: Response) => {
+  try {
+    const { checkInTime, location, remarks } = req.body;
+    const { Employee, Attendance } = req.app.locals.models;
+    
+    // Get employee from JWT token
+    const employee = await Employee.findOne({ 
+      where: { userId: req.user?.userId } 
+    });
+    
+    if (!employee) {
+      return res.status(404).json(errorResponse('Employee not found', 'EMP_001'));
+    }
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Check if already checked in today
+    const existing = await Attendance.findOne({
+      where: { employeeId: employee.id, attendanceDate: today }
+    });
+    
+    if (existing) {
+      return res.status(400).json(errorResponse('Already checked in today', 'ATT_002'));
+    }
+    
+    // Determine if late (after 9:30 AM)
+    const time = checkInTime || new Date().toTimeString().split(' ')[0];
+    const [hours, minutes] = time.split(':').map(Number);
+    const isLate = hours > 9 || (hours === 9 && minutes > 30);
+    
+    // Create attendance record
+    const attendance = await Attendance.create({
+      employeeId: employee.id,
+      attendanceDate: today,
+      checkInTime: time,
+      status: 'present',
+      remarks: isLate ? `Late check-in. ${remarks || ''}`.trim() : remarks,
+    });
+    
+    res.status(201).json(
+      successResponse('Checked in successfully', {
+        attendanceId: attendance.id,
+        checkInTime: time,
+        date: today,
+        isLate,
+        status: 'present'
+      })
+    );
+  } catch (error: any) {
+    console.error('Check-in error:', error);
+    res.status(500).json(errorResponse('Failed to check in', 'GEN_003'));
+  }
+};
+
+export const checkOut = async (req: AuthRequest, res: Response) => {
+  try {
+    const { checkOutTime, remarks } = req.body;
+    const { Employee, Attendance } = req.app.locals.models;
+    
+    // Get employee from JWT token
+    const employee = await Employee.findOne({ 
+      where: { userId: req.user?.userId } 
+    });
+    
+    if (!employee) {
+      return res.status(404).json(errorResponse('Employee not found', 'EMP_001'));
+    }
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Find today's attendance record
+    const attendance = await Attendance.findOne({
+      where: { employeeId: employee.id, attendanceDate: today }
+    });
+    
+    if (!attendance) {
+      return res.status(400).json(errorResponse('Must check in first', 'ATT_003'));
+    }
+    
+    if (attendance.checkOutTime) {
+      return res.status(400).json(errorResponse('Already checked out today', 'ATT_004'));
+    }
+    
+    // Calculate work hours
+    const time = checkOutTime || new Date().toTimeString().split(' ')[0];
+    const checkInDate = new Date(`1970-01-01T${attendance.checkInTime}`);
+    const checkOutDate = new Date(`1970-01-01T${time}`);
+    const diffMs = checkOutDate.getTime() - checkInDate.getTime();
+    const workHours = (diffMs / (1000 * 60 * 60)).toFixed(2);
+    
+    // Calculate extra hours (if > 9 hours)
+    const extraHours = parseFloat(workHours) > 9 
+      ? (parseFloat(workHours) - 9).toFixed(2) 
+      : '0.00';
+    
+    // Update attendance record
+    await attendance.update({
+      checkOutTime: time,
+      workHours: parseFloat(workHours),
+      extraHours: parseFloat(extraHours),
+      remarks: remarks || attendance.remarks,
+    });
+    
+    res.json(
+      successResponse('Checked out successfully', {
+        attendanceId: attendance.id,
+        checkInTime: attendance.checkInTime,
+        checkOutTime: time,
+        workHours,
+        extraHours,
+      })
+    );
+  } catch (error: any) {
+    console.error('Check-out error:', error);
+    res.status(500).json(errorResponse('Failed to check out', 'GEN_003'));
+  }
+};

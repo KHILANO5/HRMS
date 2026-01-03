@@ -9,6 +9,7 @@ import attendanceRoutes from './routes/attendance';
 import leaveRoutes from './routes/leaves';
 import salaryRoutes from './routes/salary';
 import profileRoutes from './routes/profile';
+import dashboardRoutes from './routes/dashboard';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use('/api/v1/attendance', attendanceRoutes);
 app.use('/api/v1/leaves', leaveRoutes);
 app.use('/api/v1/salary', salaryRoutes);
 app.use('/api/v1/profile', profileRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 app.get('/health', async (_req, res) => {
   const dbStatus = await testConnection();

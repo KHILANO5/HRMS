@@ -11,9 +11,12 @@ import {
     AlertCircle,
     Building2,
     Menu,
-    X
+    X,
+    Loader2
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import dashboardService, { type EmployeeDashboardStats } from '../../services/dashboardService';
+import authService from '../../services/authService';
 
 // Formatters
 const formatDate = (date: Date) => {
@@ -25,60 +28,97 @@ const formatDate = (date: Date) => {
 };
 
 export default function EmployeeDashboard() {
+    const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [stats, setStats] = useState<EmployeeDashboardStats | null>(null);
+    const user = authService.getCurrentUser();
 
-    // Mock Data (matches README requirements)
-    const stats = [
+    useEffect(() => {
+        fetchDashboardStats();
+    }, []);
+
+    const fetchDashboardStats = async () => {
+        try {
+            setLoading(true);
+            const data = await dashboardService.getEmployeeStats();
+            setStats(data);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to fetch dashboard stats';
+            setError(errorMessage);
+            console.error('Dashboard error:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLogout = async () => {
+        await authService.logout();
+        navigate('/login');
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+                    <p className="text-gray-600">Loading dashboard...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !stats) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+                <div className="card p-8 max-w-md text-center">
+                    <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Failed to Load Dashboard</h3>
+                    <p className="text-gray-600 mb-6">{error || 'Unable to fetch dashboard data'}</p>
+                    <button onClick={fetchDashboardStats} className="btn-primary">
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Format stats for display
+    const displayStats = [
         {
-            label: 'Attendance',
-            value: '92%',
-            subtext: '21/23 Days Present',
+            label: 'Monthly Attendance',
+            value: `${stats.monthlyAttendance.percentage}%`,
+            subtext: `${stats.monthlyAttendance.presentDays}/${stats.monthlyAttendance.presentDays + stats.monthlyAttendance.absentDays} Days Present`,
             icon: CheckCircle2,
             color: 'text-green-600',
             bg: 'bg-green-100'
         },
         {
             label: 'Paid Leave',
-            value: '12',
-            subtext: 'Days Remaining',
+            value: stats.leaveBalance.paid.remaining.toString(),
+            subtext: `${stats.leaveBalance.paid.used} Used of ${stats.leaveBalance.paid.total}`,
             icon: Calendar,
             color: 'text-blue-600',
             bg: 'bg-blue-100'
         },
         {
             label: 'Sick Leave',
-            value: '5',
-            subtext: 'Days Remaining',
+            value: stats.leaveBalance.sick.remaining.toString(),
+            subtext: `${stats.leaveBalance.sick.used} Used of ${stats.leaveBalance.sick.total}`,
             icon: AlertCircle,
             color: 'text-orange-600',
             bg: 'bg-orange-100'
         },
         {
-            label: 'Working Hours',
-            value: '168h',
-            subtext: 'This Month',
+            label: 'Check-in Status',
+            value: stats.checkInStatus.checkedIn ? 'Checked In' : 'Not Checked In',
+            subtext: stats.checkInStatus.checkInTime || 'No check-in today',
             icon: Clock,
-            color: 'text-purple-600',
-            bg: 'bg-purple-100'
-        },
+            color: stats.checkInStatus.checkedIn ? 'text-green-600' : 'text-gray-600',
+            bg: stats.checkInStatus.checkedIn ? 'bg-green-100' : 'bg-gray-100'
+        }
     ];
-
-    const recentLeaves = [
-        { id: 1, type: 'Paid Leave', date: '10/01/2026 - 12/01/2026', days: 3, status: 'Approved' },
-        { id: 2, type: 'Sick Leave', date: '28/12/2025', days: 1, status: 'Rejected' },
-    ];
-
-    const upcomingHolidays = [
-        { name: 'Republic Day', date: '26/01/2026', day: 'Monday' },
-        { name: 'Holi', date: '03/03/2026', day: 'Tuesday' },
-    ];
-
-    const handleLogout = () => {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
-    };
 
     return (
         <div className="min-h-screen bg-gray-50 flex font-sans">
@@ -186,7 +226,7 @@ export default function EmployeeDashboard() {
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        {stats.map((stat, index) => (
+                        {displayStats.map((stat, index) => (
                             <div key={index} className="card p-6 flex items-start justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-500 mb-1">{stat.label}</p>

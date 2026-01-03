@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
+import employeeService from '../../services/employeeService';
 import {
     Search,
     Filter,
@@ -14,98 +15,12 @@ import {
     Trash2,
     Eye,
     CheckCircle,
-    XCircle
+    XCircle,
+    Loader2,
+    AlertCircle
 } from 'lucide-react';
 
-// Mock employee data - Replace with API call
-const MOCK_EMPLOYEES = [
-    {
-        id: '1',
-        employeeCode: 'EMP001',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@company.com',
-        phone: '+1 (555) 123-4567',
-        department: 'IT',
-        designation: 'Software Engineer',
-        dateOfJoining: '2024-01-15',
-        profilePicture: null,
-        workStatus: 'present',
-        isActive: true
-    },
-    {
-        id: '2',
-        employeeCode: 'EMP002',
-        firstName: 'Jane',
-        lastName: 'Smith',
-        email: 'jane.smith@company.com',
-        phone: '+1 (555) 234-5678',
-        department: 'HR',
-        designation: 'HR Manager',
-        dateOfJoining: '2023-11-20',
-        profilePicture: null,
-        workStatus: 'present',
-        isActive: true
-    },
-    {
-        id: '3',
-        employeeCode: 'EMP003',
-        firstName: 'Mike',
-        lastName: 'Johnson',
-        email: 'mike.johnson@company.com',
-        phone: '+1 (555) 345-6789',
-        department: 'Finance',
-        designation: 'Financial Analyst',
-        dateOfJoining: '2024-02-01',
-        profilePicture: null,
-        workStatus: 'leave',
-        isActive: true
-    },
-    {
-        id: '4',
-        employeeCode: 'EMP004',
-        firstName: 'Sarah',
-        lastName: 'Williams',
-        email: 'sarah.williams@company.com',
-        phone: '+1 (555) 456-7890',
-        department: 'IT',
-        designation: 'Senior Developer',
-        dateOfJoining: '2023-08-10',
-        profilePicture: null,
-        workStatus: 'present',
-        isActive: true
-    },
-    {
-        id: '5',
-        employeeCode: 'EMP005',
-        firstName: 'Robert',
-        lastName: 'Brown',
-        email: 'robert.brown@company.com',
-        phone: '+1 (555) 567-8901',
-        department: 'Marketing',
-        designation: 'Marketing Manager',
-        dateOfJoining: '2023-12-05',
-        profilePicture: null,
-        workStatus: 'present',
-        isActive: true
-    },
-    {
-        id: '6',
-        employeeCode: 'EMP006',
-        firstName: 'Emily',
-        lastName: 'Davis',
-        email: 'emily.davis@company.com',
-        phone: '+1 (555) 678-9012',
-        department: 'IT',
-        designation: 'DevOps Engineer',
-        dateOfJoining: '2024-01-20',
-        profilePicture: null,
-        workStatus: 'absent',
-        isActive: true
-    }
-];
-
-const DEPARTMENTS = ['All', 'IT', 'HR', 'Finance', 'Marketing', 'Sales', 'Operations'];
+const DEPARTMENTS = ['All', 'IT', 'HR', 'Finance', 'Marketing', 'Sales', 'Operations', 'Engineering'];
 const WORK_STATUS = ['All', 'Present', 'Absent', 'On Leave'];
 
 export default function EmployeesPage() {
@@ -114,20 +29,45 @@ export default function EmployeesPage() {
     const [selectedStatus, setSelectedStatus] = useState('All');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [showFilters, setShowFilters] = useState(false);
+    const [employees, setEmployees] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-    // Filter employees
-    const filteredEmployees = MOCK_EMPLOYEES.filter(emp => {
+    useEffect(() => {
+        fetchEmployees();
+    }, []);
+
+    const fetchEmployees = async () => {
+        try {
+            setLoading(true);
+            const data = await employeeService.getAllEmployees();
+            console.log('📊 Fetched employees:', data);
+            console.log('📊 Data type:', typeof data, 'Is array?', Array.isArray(data));
+            // Ensure we have an array
+            setEmployees(Array.isArray(data) ? data : []);
+            setError('');
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to fetch employees';
+            setError(errorMessage);
+            console.error('❌ Error fetching employees:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Filter employees - add safety check
+    const filteredEmployees = Array.isArray(employees) ? employees.filter(emp => {
         const matchesSearch =
-            emp.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            emp.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            emp.employeeCode.toLowerCase().includes(searchQuery.toLowerCase());
+            emp.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            emp.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            emp.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            emp.employeeCode?.toLowerCase().includes(searchQuery.toLowerCase());
 
         const matchesDepartment = selectedDepartment === 'All' || emp.department === selectedDepartment;
         const matchesStatus = selectedStatus === 'All' || emp.workStatus === selectedStatus.toLowerCase().replace(' ', '');
 
         return matchesSearch && matchesDepartment && matchesStatus;
-    });
+    }) : [];
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -159,6 +99,32 @@ export default function EmployeesPage() {
             title="Employee Management"
             subtitle={`${filteredEmployees.length} employees found`}
         >
+            {/* Loading State */}
+            {loading && (
+                <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
+                </div>
+            )}
+
+            {/* Error State */}
+            {error && !loading && (
+                <div className="card p-6 bg-red-50 border-red-200">
+                    <div className="flex items-center space-x-3">
+                        <AlertCircle className="w-6 h-6 text-red-600" />
+                        <div>
+                            <p className="font-semibold text-red-900">Failed to load employees</p>
+                            <p className="text-sm text-red-700">{error}</p>
+                        </div>
+                    </div>
+                    <button onClick={fetchEmployees} className="btn-primary mt-4">
+                        Retry
+                    </button>
+                </div>
+            )}
+
+            {/* Content */}
+            {!loading && !error && (
+                <>
             {/* Action Bar */}
             <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 {/* Search */}
@@ -379,6 +345,8 @@ export default function EmployeesPage() {
                         Clear Filters
                     </button>
                 </div>
+            )}
+            </>
             )}
         </AdminLayout>
     );
