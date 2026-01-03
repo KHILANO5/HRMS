@@ -1,4 +1,4 @@
-import Employee from '../database/models/Employee';
+import Employee from '../../../database/models/Employee';
 import { Op } from 'sequelize';
 
 /**

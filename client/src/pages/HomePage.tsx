@@ -33,7 +33,7 @@ export default function HomePage() {
                                 to="/login"
                                 className="btn-primary flex items-center space-x-2"
                             >
-                                <span>Employee Login</span>
+                                <span>Login</span>
                                 <ArrowRight className="w-4 h-4" />
                             </Link>
                         </div>
